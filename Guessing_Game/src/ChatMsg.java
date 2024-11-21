@@ -1,4 +1,3 @@
-
-public class ChatMsg {
-
+public class ChatMsg  {
+ 
 }
