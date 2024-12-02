@@ -16,6 +16,7 @@ public class ChatServer extends JFrame {
     private static final int MAX_CLIENTS = 6; // 최대 유저 수
     private WordCategory selectedCategory; // 랜덤으로 선택된 카테고리
     private ClientHandler hostClient; // 방장 저장
+    
 
     public ChatServer() {
         setTitle("Game Server");
@@ -65,10 +66,12 @@ public class ChatServer extends JFrame {
 
     // 접속 유저 목록을 모든 유저에게 전송
     private void broadcastUserList() {
-        int currentPlayerCount = clients.size(); 
-        String fullMessage = "현재 서버 접속 인원: " + currentPlayerCount + "/6\n접속 중인 유저: " + String.join(", ", usernames);
-        
-        ChatMsg userListUpdate = new ChatMsg("SERVER", 19, fullMessage, null); 
+        // Count only non-spectator clients
+        int currentPlayerCount = (int) clients.stream().filter(client -> !client.isSpectator).count();
+        String fullMessage = "현재 서버 접속 인원: " + currentPlayerCount + "/6\n접속 중인 유저: " + 
+                             String.join(", ", usernames.stream().filter(username -> 
+                             clients.stream().anyMatch(client -> client.userName.equals(username) && !client.isSpectator)).toList());
+        ChatMsg userListUpdate = new ChatMsg("SERVER", 19, fullMessage, null);
         for (ClientHandler client : clients) {
             try {
                 client.out.writeObject(userListUpdate);
@@ -78,13 +81,14 @@ public class ChatServer extends JFrame {
             }
         }
     }
-
+    
     private class ClientHandler extends Thread {
         private Socket clientSocket;
         private ObjectInputStream in;
         private ObjectOutputStream out;
         private String userName; // 사용자 닉네임 저장
         private String assignedWord; // 사용자에게 할당된 단어
+        private boolean isSpectator;
 
         public ClientHandler(Socket socket) {
             this.clientSocket = socket;
@@ -101,8 +105,21 @@ public class ChatServer extends JFrame {
 
                 if (initialMsg.getMode() == 16) { // 텍스트 메시지 모드
                     userName = initialMsg.getUserID(); // 닉네임 저장	
-                    usernames.add(userName); // 유저 목록에 추가
+                    isSpectator = initialMsg.getMessage().contains("[관전자]");
 
+                    if (isSpectator) {
+                        userName += " (관전자)";
+                    } else {
+                        usernames.add(userName);
+                        assignedWord = selectedCategory.getRandomWord();
+                        if (assignedWord != null) {
+                            appendToDisplay(userName + "에게 단어 '" + assignedWord + "'가 할당되었습니다.");
+                        } else {
+                            out.writeObject(new ChatMsg("SERVER", 16, "모든 단어가 소진되었습니다.", null));
+                            out.flush();
+                        }
+                    }
+                    
                     appendToDisplay(userName + "님이 접속했습니다.");
                     broadcastUserList(); 
 
@@ -111,37 +128,33 @@ public class ChatServer extends JFrame {
                     out.flush();
                     
                     // 유저 체크
-                    String joinMessage = userName + "이 들어왔습니다. 현재 인원수: " + clients.size() + "/6";
-                    ChatMsg joinNotification = new ChatMsg("SERVER", 16, joinMessage, null);
-                    for (ClientHandler client : clients) {
-                        try {
-                            client.out.writeObject(joinNotification);
-                            client.out.flush();
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                    if (!isSpectator) {
+                        // 유저 체크
+                        String joinMessage = userName + "이 들어왔습니다. 현재 인원수: " + clients.size() + "/6";
+                        ChatMsg joinNotification = new ChatMsg("SERVER", 16, joinMessage, null);
+                        
+                        for (ClientHandler client : clients) {
+                            if (!client.isSpectator) { // 관전자가 아닌 경우에만 전송
+                                client.out.writeObject(joinNotification);
+                                client.out.flush();
+                            }
                         }
                     }
 
-                    // 현재 접속 인원 수 전송
-                    int currentPlayerCount = clients.size();
+                 // 현재 접속 인원 수 전송
+                    int currentPlayerCount = getCurrentPlayerCount();
                     String playerCountMessage = "현재 서버 접속 인원: " + currentPlayerCount + "명";
                     out.writeObject(new ChatMsg("SERVER", 16, playerCountMessage, null));
                     out.flush();
-
+                    
                     // 방장 지정 (첫 번째 유저)
-                    if (hostClient == null) {
+                    if (hostClient == null && !isSpectator) {
                         hostClient = this; // 현재 클라이언트를 방장으로 설정
                         out.writeObject(new ChatMsg("SERVER", 17, "당신은 방장입니다. 게임 시작 버튼이 활성화됩니다.", null));
                         out.flush();
                     }
                     
-                    assignedWord = selectedCategory.getRandomWord();
-                    if (assignedWord != null) {
-                        appendToDisplay(userName + "에게 단어 '" + assignedWord + "'가 할당되었습니다.");
-                    } else {
-                        out.writeObject(new ChatMsg("SERVER", 16, "모든 단어가 소진되었습니다.", null));
-                        out.flush();
-                    }
+               
                 }
 
                 while (!clientSocket.isClosed()) {
@@ -195,6 +208,10 @@ public class ChatServer extends JFrame {
                 closeConnection();
             }
         }
+        
+        private int getCurrentPlayerCount() {
+            return (int) clients.stream().filter(client -> !client.isSpectator).count();
+        }
 
        
         private void saveReceivedFile(ChatMsg chatMsg) {
@@ -222,21 +239,20 @@ public class ChatServer extends JFrame {
         // 랜덤 단어 가져오기
         private void assignNewWordsToAllPlayers() {
             for (ClientHandler client : clients) {
-                String newWord = selectedCategory.getRandomWord(); // 카테고리에서 랜덤 단어 가져오기
-                if (newWord != null) {
-                    client.assignedWord = newWord; // 새로운 단어 할당
-                    try {
-                        client.out.writeObject(new ChatMsg("SERVER", 16, "새로운 단어가 할당되었습니다!", null));
-                        client.out.flush();
-                        appendToDisplay(client.userName + "에게 새로운 단어 '" + newWord + "'가 할당되었습니다.");
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                if (!client.isSpectator) {
+                    String newWord = selectedCategory.getRandomWord();
+                    if (newWord != null) {
+                        client.assignedWord = newWord;
+                        // Removed broadcasting logic
+                        appendToDisplay(client.userName + "에게 단어 '" + newWord + "'가 배정되었습니다.");
+                    } else {
+                        appendToDisplay("모든 단어가 소진되었습니다. 더 이상 할당할 단어가 없습니다.");
                     }
-                } else {
-                    appendToDisplay("모든 단어가 소진되었습니다. 더 이상 할당할 단어가 없습니다.");
                 }
             }
         }
+
+
         
         // 게임 종료 메서드 추가
         private void endGameForAll() {

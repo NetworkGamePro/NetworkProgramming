@@ -33,7 +33,7 @@ public class GameStart extends JFrame {
         JButton startButton = new JButton("게임 접속하기");
         startButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         startButton.addActionListener((ActionEvent e) -> {
-            new Player(); 
+            showRoleSelectionDialog(); 
             dispose(); // 현재 창 닫음
         });
 
@@ -43,6 +43,28 @@ public class GameStart extends JFrame {
         add(centerPanel, BorderLayout.CENTER);
 
         setVisible(true);
+    }
+
+    private void showRoleSelectionDialog() {
+        String[] options = {"관전자", "플레이어"};
+        int choice = JOptionPane.showOptionDialog(
+            this,
+            "역할을 선택하세요:",
+            "역할 선택",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.INFORMATION_MESSAGE,
+            null,
+            options,
+            options[0]
+        );
+
+        if (choice == 0) {
+        
+            new Player(true); 
+        } else if (choice == 1) {
+       
+            new Player(false); 
+        }
     }
 
     public static void main(String[] args) {

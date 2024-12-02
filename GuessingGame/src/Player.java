@@ -14,14 +14,17 @@ public class Player extends JFrame {
     private Socket socket;           
     private ObjectOutputStream out;
     private ObjectInputStream in;
+    private boolean isSpectator;
 
     private static final String SERVER_ADDRESS = "localhost";
     private static final int SERVER_PORT = 54321;
 
     private boolean isHost = false; // 방장 여부
 
-    public Player() {
+    public Player(boolean isSpectator) {
+        this.isSpectator = isSpectator;
         setTitle("단어 맞추기 게임");
+        
         setSize(400, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -33,15 +36,20 @@ public class Player extends JFrame {
         chatPane.setEditable(false);
         add(new JScrollPane(chatPane), BorderLayout.CENTER);
 
+        
+        if (isSpectator) {
+            inputField.setEnabled(true);
+            sendButton.setEnabled(true);
+            startGameButton.setEnabled(false);
+            
+        }
+        
         promptForNicknameAndConnect();
-
         setVisible(true);
     }
-
     // 닉네임 설정
     private void promptForNicknameAndConnect() {
         userName = JOptionPane.showInputDialog(this, "닉네임을 입력하세요:", "닉네임 입력", JOptionPane.PLAIN_MESSAGE);
-
         if (userName == null || userName.trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "닉네임을 입력해야 합니다.", "오류", JOptionPane.ERROR_MESSAGE);
             System.exit(0);
@@ -57,15 +65,13 @@ public class Player extends JFrame {
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
 
-            appendToChat("닉네임: " + userName);
-
-            // 닉네임 전송
-            ChatMsg initialMsg = new ChatMsg(userName, 16, "", null);
+            String initialMessage = isSpectator ? "[관전자] 관전자로 접속했습니다" : "";
+            
+            ChatMsg initialMsg = new ChatMsg(userName, 16, initialMessage, null);
             out.writeObject(initialMsg);
 
-            // 수신 메시지 처리 스레드 시작
-            new Thread(() -> receiveMessages()).start();
-
+            // 메시지 수신 스레드 시작
+            new Thread(this::receiveMessages).start();
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "서버 접속 에러: " + e.getMessage(), "연결 에러", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
@@ -74,13 +80,14 @@ public class Player extends JFrame {
 
     // 메세지 전송
     private void sendMessage() {
+       
+
         try {
             if (out != null) {
                 String messageText = inputField.getText().trim();
                 if (!messageText.isEmpty()) {
                     ChatMsg chatMsg = new ChatMsg(userName, 16, messageText, null);
                     out.writeObject(chatMsg);
-
                     inputField.setText("");
                 }
             }
@@ -91,6 +98,8 @@ public class Player extends JFrame {
     
     // 이미지 서버로 전송
     private void sendImage() {
+    
+    	
         try {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("이미지 파일", "jpg", "png", "gif"));
@@ -110,6 +119,7 @@ public class Player extends JFrame {
     
     // 파일 서버로 전송
     private void sendFile() {
+    	
         try {
             JFileChooser fileChooser = new JFileChooser();
             int result = fileChooser.showOpenDialog(this);
@@ -286,6 +296,8 @@ public class Player extends JFrame {
 
         return panel;
     }
+    
+    
 
     private void enableStartGameButton() {
         SwingUtilities.invokeLater(() -> startGameButton.setEnabled(true)); // 버튼 활성화
@@ -301,6 +313,7 @@ public class Player extends JFrame {
     }
 
     public static void main(String[] args) {
-        new Player();
+        boolean isSpectatorMode = false; 
+        new Player(isSpectatorMode); 
     }
 }
