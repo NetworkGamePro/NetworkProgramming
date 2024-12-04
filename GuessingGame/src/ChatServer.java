@@ -271,13 +271,18 @@ public class ChatServer extends JFrame {
         private void broadcastMessage(ChatMsg chatMsg, ClientHandler sender) {
             for (ClientHandler client : clients) {
                 try {
-                    if (chatMsg.getMode() == 22) { // 이미지 메시지
-                        client.out.writeObject(chatMsg); 
+                    if (chatMsg.getMode() == 22) { 
+                        client.out.writeObject(chatMsg);
                     } else if (sender == null) {
                         client.out.writeObject(new ChatMsg("SERVER", 16, chatMsg.getMessage(), null));
-                    } else if (client == sender) { // 보낸 유저에게 단어 숨김 처리
-                        client.out.writeObject(new ChatMsg(sender.userName, 16, chatMsg.getMessage(), null, "단어 숨김"));
-                    } else { // 다른 유저들에게 단어 포함 메시지 전송
+                    } else if (client == sender) {
+                        if (sender.isSpectator) {
+                            client.out.writeObject(new ChatMsg(sender.userName, 16, chatMsg.getMessage(), null));
+                        } else {
+                            client.out.writeObject(new ChatMsg(sender.userName, 16, chatMsg.getMessage(), null, "단어 숨김"));
+                        }
+                    } else {
+                      
                         client.out.writeObject(new ChatMsg(sender.userName, 16, chatMsg.getMessage(), null, sender.assignedWord));
                     }
                     client.out.flush();
