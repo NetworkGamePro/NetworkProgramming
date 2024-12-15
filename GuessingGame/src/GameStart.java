@@ -5,12 +5,12 @@ import java.awt.event.ActionEvent;
 public class GameStart extends JFrame {
     public GameStart() {
         setTitle("단어 맞추기 게임");
-        setSize(400, 600);
+        setSize(400, 450);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
         // 배경 GIF 설정
-        JLabel backgroundLabel = new JLabel(new ImageIcon("../assets/giphy.gif"));
+        JLabel backgroundLabel = new JLabel(new ImageIcon("../assets/giphy2.gif"));
         backgroundLabel.setLayout(new BorderLayout()); // 배경 위에 다른 컴포넌트 추가 가능하게 설정
         setContentPane(backgroundLabel);
 
@@ -21,7 +21,8 @@ public class GameStart extends JFrame {
 
         // 제목
         JLabel startLabel = new JLabel("단어 맞추기 게임", SwingConstants.CENTER);
-        startLabel.setFont(new Font("Serif", Font.BOLD, 24));
+        startLabel.setFont(new Font("ChangwonDangamAsac", Font.BOLD, 44));
+        // startLabel.setForeground(Color.WHITE);
         startLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // 제목 위치 조정
@@ -46,6 +47,7 @@ public class GameStart extends JFrame {
 
         centerPanel.add(startButton);
         centerPanel.add(Box.createVerticalGlue()); // 아래쪽 여백
+        // centerPanel.setVisible(false);
 
         add(centerPanel, BorderLayout.CENTER);
 
