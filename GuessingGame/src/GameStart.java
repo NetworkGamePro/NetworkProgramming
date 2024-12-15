@@ -9,13 +9,20 @@ public class GameStart extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
+
+        // 배경 GIF 설정
+        JLabel backgroundLabel = new JLabel(new ImageIcon("assets/image/giphy2.gif"));
+        backgroundLabel.setLayout(new BorderLayout()); // 배경 위에 다른 컴포넌트 추가 가능하게 설정
+        setContentPane(backgroundLabel);
+
         // 제목 패널
         JPanel titlePanel = new JPanel();
+        titlePanel.setOpaque(false); // 배경 투명하게 설정
         titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
 
         // 제목
         JLabel startLabel = new JLabel("단어 맞추기 게임", SwingConstants.CENTER);
-        startLabel.setFont(new Font("Serif", Font.BOLD, 24)); 
+        startLabel.setFont(new Font("ChangwonDangamAsac", Font.BOLD, 44));
         startLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // 제목 위치 조정
@@ -26,8 +33,8 @@ public class GameStart extends JFrame {
 
         // 중앙 공간, 버튼 추가
         JPanel centerPanel = new JPanel();
+        centerPanel.setOpaque(false); // 배경 투명하게 설정
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
-
         centerPanel.add(Box.createRigidArea(new Dimension(0, 300))); 
         
         JButton startButton = new JButton("게임 접속하기");
