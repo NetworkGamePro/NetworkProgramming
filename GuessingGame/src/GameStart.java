@@ -1,6 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class GameStart extends JFrame {
     public GameStart() {
@@ -65,17 +67,13 @@ public class GameStart extends JFrame {
         centerPanel.add(Box.createRigidArea(new Dimension(0, 200)));
 
 
-        //버튼 추가
-        JButton startButton = new JButton("게임 접속하기");
-        startButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-
+        // 커스터마이즈된 버튼 생성
+        JButton startButton = createGameStyledButton("게임 접속하기");
 
         startButton.addActionListener((ActionEvent e) -> {
-            showRoleSelectionDialog(); 
+            showRoleSelectionDialog();
             dispose(); // 현재 창 닫음
         });
-
-
 
         centerPanel.add(startButton);
         centerPanel.add(Box.createVerticalGlue()); // 아래쪽 여백
@@ -83,6 +81,33 @@ public class GameStart extends JFrame {
         add(centerPanel, BorderLayout.CENTER);
 
         setVisible(true);
+    }
+
+    private JButton createGameStyledButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Arial", Font.BOLD, 20)); // 굵고 큰 글씨체
+        button.setBackground(new Color(45, 45, 45)); // 어두운 배경
+        button.setForeground(Color.WHITE); // 텍스트 색상
+        button.setFocusPainted(false); // 버튼 포커스 효과 제거
+        button.setBorder(BorderFactory.createLineBorder(new Color(255, 215, 0), 5)); // 금색 테두리
+
+        // 마우스 오버 효과 추가
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(new Color(60, 60, 60)); // 밝아지는 효과
+                button.setBorder(BorderFactory.createLineBorder(new Color(255, 255, 255), 5)); // 테두리 색 변경
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(new Color(45, 45, 45)); // 원래 색상으로 복구
+                button.setBorder(BorderFactory.createLineBorder(new Color(255, 215, 0), 2)); // 원래 테두리로 복구
+            }
+        });
+
+        button.setAlignmentX(Component.CENTER_ALIGNMENT); // 가운데 정렬
+        return button;
     }
 
     private void showRoleSelectionDialog() {
