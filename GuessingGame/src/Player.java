@@ -317,8 +317,6 @@ public class Player extends JFrame {
         startGameButton = createStyledButton("🚀 게임 시작");           // 게임 시작 버튼
         JButton sendImageButton = createStyledButton("🖼️ 이미지"); // 이미지 보내기 버튼
         sendImageButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "귀여운 스티커를 전송했습니다!");
-            appendImageToChat(new ImageIcon("assets/icons/player_icon.png"));
             playSound("assets/sound/button_click.wav");
         });
         JButton sendFileButton = createStyledButton("📁 파일");   // 파일 보내기 버튼
