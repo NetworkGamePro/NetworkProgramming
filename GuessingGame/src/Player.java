@@ -21,6 +21,12 @@ public class Player extends JFrame {
     private ObjectInputStream in;
     private boolean isSpectator;
 
+
+    private JLabel currentWordLabel;  // 현재 단어를 표시할 라벨
+    private JLabel winCountLabel;     // 승리 횟수를 표시할 라벨
+    private String currentWord;       // 현재 할당된 단어
+    private int currentWins = 0;      // 현재 승리 횟수
+
     private static final String SERVER_ADDRESS = "localhost";
     private static final int SERVER_PORT = 54321;
 
@@ -66,6 +72,27 @@ public class Player extends JFrame {
         // 닉네임 입력 및 서버 연결
         promptForNicknameAndConnect();
         setVisible(true);
+
+        // 단어와 승리 횟수 정보를 표시할 패널 추가
+        JPanel infoPanel = createInfoPanel();
+        add(infoPanel, BorderLayout.NORTH);
+    }
+
+    // 정보 패널 생성 메서드
+    private JPanel createInfoPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+        currentWordLabel = new JLabel("현재 단어: 없음");
+        winCountLabel = new JLabel("승리 횟수: 0");
+
+        currentWordLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
+        winCountLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
+
+        panel.add(currentWordLabel);
+        panel.add(Box.createHorizontalStrut(20)); // 라벨 사이 간격
+        panel.add(winCountLabel);
+
+        return panel;
     }
     // 닉네임 설정
     private void promptForNicknameAndConnect() {
@@ -227,14 +254,53 @@ public class Player extends JFrame {
                 } else if (chatMsg.getMode() == 20) { // 게임 종료 메시지
                     appendToChat(chatMsg.getMessage());
                     JOptionPane.showMessageDialog(this, "게임이 종료되었습니다!", "알림", JOptionPane.INFORMATION_MESSAGE);
+                    currentWord = null;
+                    currentWins = 0;
+                    updateCurrentWordLabel();
+                    updateWinCountLabel("승리 횟수: 0");
                     break;
+                }
+
+                // 현재 단어 업데이트 로직 추가
+                if (chatMsg.getAttachedWord() != null && !chatMsg.getAttachedWord().equals("단어 숨김")) {
+                    currentWord = chatMsg.getAttachedWord();
+                    updateCurrentWordLabel();
+                }
+
+                // 승리 횟수 업데이트 로직 추가
+                if (chatMsg.getMessage() != null && chatMsg.getMessage().contains("현재 승리 횟수")) {
+                    updateWinCountLabel(chatMsg.getMessage());
+
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
-
+    // 현재 단어 라벨 업데이트 메서드
+    private void updateCurrentWordLabel() {
+        SwingUtilities.invokeLater(() -> {
+            if (currentWord != null) {
+                currentWordLabel.setText("현재 단어: " + currentWord);
+            } else {
+                currentWordLabel.setText("현재 단어: 없음");
+            }
+        });
+    }
+    // 승리 횟수 라벨 업데이트 메서드
+    private void updateWinCountLabel(String message) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                // 메시지에서 승리 횟수 추출 (예: "현재 승리 횟수: 2")
+                String winCountStr = message.replaceAll("[^0-9]", "");
+                currentWins = Integer.parseInt(winCountStr);
+                winCountLabel.setText("승리 횟수: " + currentWins);
+            } catch (NumberFormatException e) {
+                // 파싱 실패 시 기본값으로 설정
+                winCountLabel.setText("승리 횟수: 0");
+            }
+        });
+    }
     // 받은 파일 저장
     private void saveReceivedFile(ChatMsg chatMsg) {
         try {
