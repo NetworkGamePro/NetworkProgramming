@@ -31,7 +31,7 @@ public class Player extends JFrame {
         setTitle("단어 맞추기 게임");
 
 
-        setSize(500, 700);
+        setSize(500, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
@@ -351,24 +351,29 @@ public class Player extends JFrame {
     }
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text);
+
+        // 기본 스타일 설정
         button.setFont(new Font("Comic Sans MS", Font.BOLD, 18));
         button.setBackground(new Color(255, 228, 225)); // 파스텔톤 배경
         button.setForeground(Color.DARK_GRAY);
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createLineBorder(Color.PINK, 2));
+        button.setOpaque(true); // Opaque를 true로 설정
+        button.setContentAreaFilled(true); // 버튼 배경 영역 활성화
 
         // 마우스 이벤트로 색 변경
         button.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                button.setBackground(Color.PINK);
+                button.setBackground(Color.PINK); // 마우스 오버 색상
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                button.setBackground(new Color(255, 228, 225));
+                button.setBackground(new Color(255, 228, 225)); // 기본 배경색으로 복원
             }
         });
+
         return button;
     }
     private void playSound(String filePath) {
