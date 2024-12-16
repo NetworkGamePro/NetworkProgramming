@@ -19,6 +19,8 @@ public class Player extends JFrame {
     private String userName;         // 유저 닉네임
     private JTextArea playerInfoArea; // 플레이어 정보 출력 영역
 
+
+
     private Socket socket;
     private ObjectOutputStream out;
     private ObjectInputStream in;
@@ -56,6 +58,8 @@ public class Player extends JFrame {
         JPanel centerPanel = createTransparentPanel();
         centerPanel.setLayout(new BorderLayout(10, 10));
         centerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+
 
         // 채팅 패널(반투명)
         JPanel chatPanel = createRoundedPanel();
@@ -308,6 +312,11 @@ public class Player extends JFrame {
                 String name = playerData[0];
                 String word = playerData[1];
                 String wins = playerData[2];
+
+                // 본인의 단어는 "가려짐"
+                if (name.equals(userName)) {
+                    word = "가려짐";
+                }
                 sb.append(String.format("%-10s %-10s %s\n", name, word, wins));
             }
         }

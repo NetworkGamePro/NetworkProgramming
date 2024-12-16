@@ -328,6 +328,7 @@ public class ChatServer extends JFrame {
                     int wins = gameManager.getWins(client.userName);
                     String word = client.assignedWord != null ? client.assignedWord : "";
                     sb.append(";").append(client.userName).append("|").append(word).append("|").append(wins);
+
                 }
             }
 
