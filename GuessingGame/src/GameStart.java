@@ -17,40 +17,43 @@ public class GameStart extends JFrame {
         backgroundLabel.setLayout(new BorderLayout()); // 배경 위에 다른 컴포넌트 추가 가능하게 설정
         setContentPane(backgroundLabel);
 
-        // 제목과 하얀 네모를 겹치게 배치할 레이어드 패널
-        JLayeredPane layeredPane = new JLayeredPane();
-        layeredPane.setPreferredSize(new Dimension(400, 150));
 
-        // 하얀 네모
-        JPanel whiteRectangle = new JPanel();
-        whiteRectangle.setBackground(Color.WHITE);
-        whiteRectangle.setBounds(70, 110, 330, 70); // 네모의 위치와 크기 설정
 
 //        // 제목 패널
 //        JPanel titlePanel = new JPanel();
 //        titlePanel.setOpaque(false); // 배경 투명하게 설정
 //        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
 
+        // 제목과 하얀 네모를 겹치는 패널 생성
+        JPanel layeredTitlePanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setColor(Color.WHITE);
+                g2d.fillRect(50, 40, 350, 80); // 하얀 네모 그리기
+            }
+        };
+        layeredTitlePanel.setOpaque(false);
+        layeredTitlePanel.setLayout(new BorderLayout());
 
-        // 제목
+
+        // 제목 추가
         JLabel startLabel = new JLabel("단어 맞추기 게임", SwingConstants.CENTER);
         startLabel.setFont(new Font("ChangwonDangamAsac", Font.BOLD, 44));
-        startLabel.setBounds(70, 100, 330, 60); // 글자 위치 설정
-        startLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        startLabel.setForeground(Color.BLACK); // 글씨를 검은색으로 설정
+        layeredTitlePanel.add(startLabel, BorderLayout.CENTER);
 
-        // 레이어드 패널에 추가 (순서 중요: 네모 -> 글자)
-        layeredPane.add(whiteRectangle, Integer.valueOf(0)); // 아래 레이어
-        layeredPane.add(startLabel, Integer.valueOf(1)); // 위 레이어
 
         // 제목 패널에 레이어드 패널 추가
         JPanel titlePanel = new JPanel();
         titlePanel.setOpaque(false); // 배경 투명
         titlePanel.setPreferredSize(new Dimension(400, 150));
         titlePanel.setLayout(new BorderLayout());
-        titlePanel.add(layeredPane, BorderLayout.CENTER);
+
+        titlePanel.add(layeredTitlePanel);
 
         add(titlePanel, BorderLayout.NORTH);
-
 
 
         // 제목 위치 조정
@@ -87,7 +90,7 @@ public class GameStart extends JFrame {
         JButton button = new JButton(text);
         button.setFont(new Font("Arial", Font.BOLD, 20)); // 굵고 큰 글씨체
         button.setBackground(new Color(45, 45, 45)); // 어두운 배경
-        button.setForeground(Color.WHITE); // 텍스트 색상
+        button.setForeground(Color.black); // 텍스트 색상
         button.setFocusPainted(false); // 버튼 포커스 효과 제거
         button.setBorder(BorderFactory.createLineBorder(new Color(255, 215, 0), 5)); // 금색 테두리
 
@@ -97,6 +100,7 @@ public class GameStart extends JFrame {
             public void mouseEntered(MouseEvent e) {
                 button.setBackground(new Color(60, 60, 60)); // 밝아지는 효과
                 button.setBorder(BorderFactory.createLineBorder(new Color(255, 255, 255), 5)); // 테두리 색 변경
+
             }
 
             @Override
