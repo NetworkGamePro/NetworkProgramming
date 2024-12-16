@@ -36,7 +36,11 @@ public class Player extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // 배경 이미지 설정
+<<<<<<< Updated upstream
         ImageIcon backgroundImage = new ImageIcon("assets/image/cute_background.jpg"); // 적절한 배경 이미지 사용
+=======
+        ImageIcon backgroundImage = new ImageIcon("assets/image/game_background.jpg"); // 적절한 배경 이미지 사용
+>>>>>>> Stashed changes
         JLabel backgroundLabel = new JLabel(backgroundImage);
         backgroundLabel.setLayout(new BorderLayout());
         setContentPane(backgroundLabel);
