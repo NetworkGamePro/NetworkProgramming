@@ -2,6 +2,7 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -16,6 +17,8 @@ public class Player extends JFrame {
     private JButton sendButton;      // 메세지 전송 버튼
     private JButton startGameButton; // "게임 시작" 버튼
     private String userName;         // 유저 닉네임
+    private JTextArea playerInfoArea; // 플레이어 정보 출력 영역
+
     private Socket socket;
     private ObjectOutputStream out;
     private ObjectInputStream in;
@@ -29,44 +32,106 @@ public class Player extends JFrame {
     public Player(boolean isSpectator) {
         this.isSpectator = isSpectator;
         setTitle("단어 맞추기 게임");
-
-
-        setSize(500, 400);
+        setSize(1000, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
 
+        // 배경 이미지 설정
+        ImageIcon backgroundImage = new ImageIcon("assets/image/game_background.jpg"); // 적절한 배경 이미지 사용
+        JLabel backgroundLabel = new JLabel(backgroundImage);
+        backgroundLabel.setLayout(new BorderLayout());
+        setContentPane(backgroundLabel);
 
-        // **헤더 패널**
-        JPanel headerPanel = new JPanel();
-        headerPanel.setOpaque(false);
+        // 투명도 있는 패널을 만들기 위한 유틸 메서드
+        JPanel transparentPanel = createTransparentPanel();
+
+        // 상단 타이틀 패널
+        JPanel headerPanel = createTransparentPanel();
         JLabel titleLabel = new JLabel("✨ 단어 맞추기 게임 ✨");
-        titleLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 36));
-        titleLabel.setForeground(Color.BLUE);
+        titleLabel.setFont(new Font("Cafe24Oneprettynight", Font.BOLD, 48));
+        titleLabel.setForeground(new Color(255, 255, 255));
         headerPanel.add(titleLabel);
-        add(headerPanel, BorderLayout.NORTH);
+        backgroundLabel.add(headerPanel, BorderLayout.NORTH);
 
+        // 중앙 영역: 채팅창 + 플레이어 정보
+        JPanel centerPanel = createTransparentPanel();
+        centerPanel.setLayout(new BorderLayout(10, 10));
+        centerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-
-
-        JPanel inputPanel = createInputPanel();
-        add(inputPanel, BorderLayout.SOUTH);
-
-
+        // 채팅 패널(반투명)
+        JPanel chatPanel = createRoundedPanel();
+        chatPanel.setLayout(new BorderLayout());
+        chatPanel.setBorder(BorderFactory.createTitledBorder(
+                new LineBorder(Color.WHITE, 2), "채팅", 0, 0,
+                new Font("Comic Sans MS", Font.BOLD, 18), Color.WHITE));
         chatPane = new JTextPane();
         chatPane.setEditable(false);
-        add(new JScrollPane(chatPane), BorderLayout.CENTER);
+        chatPane.setBackground(new Color(255,255,255,180));
+        JScrollPane chatScroll = new JScrollPane(chatPane);
+        chatScroll.setOpaque(false);
+        chatScroll.getViewport().setOpaque(false);
+        chatPanel.add(chatScroll, BorderLayout.CENTER);
 
+        // 플레이어 정보 패널(반투명)
+        JPanel infoPanel = createRoundedPanel();
+        infoPanel.setLayout(new BorderLayout());
+        infoPanel.setBorder(BorderFactory.createTitledBorder(
+                new LineBorder(Color.WHITE, 2), "플레이어 상태", 0, 0,
+                new Font("Comic Sans MS", Font.BOLD, 18), Color.WHITE));
+        playerInfoArea = new JTextArea();
+        playerInfoArea.setEditable(false);
+        playerInfoArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        playerInfoArea.setForeground(Color.BLACK);
+        playerInfoArea.setBackground(new Color(255,255,255,180));
+        JScrollPane infoScroll = new JScrollPane(playerInfoArea);
+        infoScroll.setOpaque(false);
+        infoScroll.getViewport().setOpaque(false);
+        infoPanel.add(infoScroll, BorderLayout.CENTER);
+        infoPanel.setPreferredSize(new Dimension(250, 0));
+        infoPanel.revalidate();
+        infoPanel.repaint();
+
+        centerPanel.add(chatPanel, BorderLayout.CENTER);
+        centerPanel.add(infoPanel, BorderLayout.EAST);
+
+        backgroundLabel.add(centerPanel, BorderLayout.CENTER);
+
+        // 하단 입력 패널
+        JPanel inputPanel = createInputPanel();
+        backgroundLabel.add(inputPanel, BorderLayout.SOUTH);
 
         if (isSpectator) {
             inputField.setEnabled(true);
             sendButton.setEnabled(true);
             startGameButton.setEnabled(false);
-
         }
+
         // 닉네임 입력 및 서버 연결
         promptForNicknameAndConnect();
         setVisible(true);
     }
+
+    private JPanel createTransparentPanel() {
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        return panel;
+    }
+
+    // 둥근 모서리 반투명 패널 생성
+    private JPanel createRoundedPanel() {
+        return new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                // 약간 투명한 흰색
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
+                g2d.setColor(new Color(255, 255, 255, 200));
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
+                g2d.dispose();
+            }
+        };
+    }
+
     // 닉네임 설정
     private void promptForNicknameAndConnect() {
         userName = JOptionPane.showInputDialog(this, "닉네임을 입력하세요:", "닉네임 입력", JOptionPane.PLAIN_MESSAGE);
@@ -79,7 +144,7 @@ public class Player extends JFrame {
         appendToChat("👋 환영합니다, " + userName + "님!");
     }
 
-    // 서버 연결 자동으로 시킴
+    // 서버 연결
     private void connectToServer() {
         try {
             socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
@@ -87,7 +152,6 @@ public class Player extends JFrame {
             in = new ObjectInputStream(socket.getInputStream());
 
             String initialMessage = isSpectator ? "[관전자] 관전자로 접속했습니다" : "";
-
             ChatMsg initialMsg = new ChatMsg(userName, 16, initialMessage, null);
             out.writeObject(initialMsg);
 
@@ -117,8 +181,6 @@ public class Player extends JFrame {
 
     // 이미지 서버로 전송
     private void sendImage() {
-
-
         try {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("이미지 파일", "jpg", "png", "gif"));
@@ -138,7 +200,6 @@ public class Player extends JFrame {
 
     // 파일 서버로 전송
     private void sendFile() {
-
         try {
             JFileChooser fileChooser = new JFileChooser();
             int result = fileChooser.showOpenDialog(this);
@@ -146,7 +207,7 @@ public class Player extends JFrame {
             if (result == JFileChooser.APPROVE_OPTION) {
                 File selectedFile = fileChooser.getSelectedFile();
 
-                // 파일 크기 제한
+                // 파일 크기 제한 (10MB)
                 if (selectedFile.length() > 10 * 1024 * 1024) {
                     JOptionPane.showMessageDialog(this, "파일 크기가 너무 큽니다. 10MB 이하의 파일만 전송 가능합니다.", "오류", JOptionPane.ERROR_MESSAGE);
                     return;
@@ -174,10 +235,7 @@ public class Player extends JFrame {
             if (out != null && isHost) { // 방장만 요청 가능
                 ChatMsg startGameRequest = new ChatMsg(userName, 18, "", null); // 모드 18은 게임 시작 요청
                 out.writeObject(startGameRequest);
-
                 appendToChat("SERVER: 게임이 곧 시작됩니다!");
-
-                // 3초 후 채팅창 클리어
                 clearChatPaneAfterDelay(3000);
             }
         } catch (IOException e) {
@@ -188,46 +246,48 @@ public class Player extends JFrame {
     private void receiveMessages() {
         try {
             while (true) {
+
                 ChatMsg chatMsg = (ChatMsg) in.readObject();
 
                 if (chatMsg.getMode() == 16) { // 일반 채팅
-                    appendToChat(chatMsg.toString()); // 채팅창에 메시지 추가
+                    appendToChat(chatMsg.toString());
 
-                    // 새로운 단어 배정 알림
                     if (chatMsg.getMessage().contains("새로운 단어가 할당되었습니다!")) {
                         JOptionPane.showMessageDialog(this, "새로운 제시어를 확인하세요!", "알림", JOptionPane.INFORMATION_MESSAGE);
-                    }
-                    // 승리 횟수 알림
-                    else if (chatMsg.getMessage().contains("현재 승리 횟수")) {
+
+                    } else if (chatMsg.getMessage().contains("현재 승리 횟수")) {
                         JOptionPane.showMessageDialog(this, chatMsg.getMessage(), "승리 알림", JOptionPane.INFORMATION_MESSAGE);
+
                     }
+
 
                 } else if (chatMsg.getMode() == 22) { // 이미지 메시지
                     appendToChat(chatMsg.getUserID() + "님이 이미지를 보냈습니다.");
-                    appendImageToChat(chatMsg.getImage()); // 채팅창에 이미지 추가
+                    appendImageToChat(chatMsg.getImage());
 
-                }
-                else if (chatMsg.getMode() == 23) { // 파일 메시지
+                } else if (chatMsg.getMode() == 23) { // 파일 메시지
                     saveReceivedFile(chatMsg);
                     appendToChat(chatMsg.getUserID() + "님이 '" + chatMsg.getMessage() + "' 파일을 보냈습니다.");
-                }
-                else if (chatMsg.getMode() == 17) { // 방장 확인 메세지
+
+                } else if (chatMsg.getMode() == 17) {
                     isHost = true;
                     enableStartGameButton();
                     appendToChat("SERVER: 당신은 방장입니다. 게임 시작 버튼이 활성화되었습니다.");
 
-                } else if (chatMsg.getMode() == 18) { // 게임 시작 알림
+                } else if (chatMsg.getMode() == 18) {
+                    appendToChat(chatMsg.getMessage());
+                    clearChatPaneAfterDelay(3000);
+
+                } else if (chatMsg.getMode() == 19) {
                     appendToChat(chatMsg.getMessage());
 
-                    clearChatPaneAfterDelay(3000); // 3초 후 채팅창 초기화
-
-                } else if (chatMsg.getMode() == 19) { // 유저 목록 업데이트
-                    appendToChat(chatMsg.getMessage());
-
-                } else if (chatMsg.getMode() == 20) { // 게임 종료 메시지
+                } else if (chatMsg.getMode() == 20) {
                     appendToChat(chatMsg.getMessage());
                     JOptionPane.showMessageDialog(this, "게임이 종료되었습니다!", "알림", JOptionPane.INFORMATION_MESSAGE);
                     break;
+
+                } else if (chatMsg.getMode() == 24) {
+                    updatePlayerInfo(chatMsg.getMessage());
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
@@ -235,18 +295,37 @@ public class Player extends JFrame {
         }
     }
 
-    // 받은 파일 저장
+    // 현황패널 업데이트
+    private void updatePlayerInfo(String data) {
+        if (!data.startsWith("USER_DATA")) return;
+        String[] parts = data.split(";");
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("%-10s %-10s %s\n", "닉네임", "할당단어", "승리횟수"));
+        sb.append("-------------------------------------\n");
+        for (int i = 1; i < parts.length; i++) {
+            String[] playerData = parts[i].split("\\|");
+            if (playerData.length == 3) {
+                String name = playerData[0];
+                String word = playerData[1];
+                String wins = playerData[2];
+                sb.append(String.format("%-10s %-10s %s\n", name, word, wins));
+            }
+        }
+        playerInfoArea.setText(sb.toString());
+    }
+
+    // 파일 저장
     private void saveReceivedFile(ChatMsg chatMsg) {
         try {
             JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setSelectedFile(new File(chatMsg.getMessage())); // 기본 저장 이름 설정
+            fileChooser.setSelectedFile(new File(chatMsg.getMessage()));
 
             int result = fileChooser.showSaveDialog(this);
             if (result == JFileChooser.APPROVE_OPTION) {
                 File saveFile = fileChooser.getSelectedFile();
 
                 try (FileOutputStream fos = new FileOutputStream(saveFile)) {
-                    fos.write(chatMsg.getFileData()); // 파일 데이터 저장
+                    fos.write(chatMsg.getFileData());
                 }
 
                 JOptionPane.showMessageDialog(this, "파일이 성공적으로 저장되었습니다: " + saveFile.getAbsolutePath(), "알림", JOptionPane.INFORMATION_MESSAGE);
@@ -257,34 +336,30 @@ public class Player extends JFrame {
         }
     }
 
-    // 이미지 파일 출력할때 크기 조정
     private ImageIcon resizeImage(ImageIcon imageIcon, int width, int height) {
         Image image = imageIcon.getImage();
         Image resizedImage = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
         return new ImageIcon(resizedImage);
     }
 
-    // 텍스트 메세지 채팅창에 출력
     private void appendToChat(String message) {
         try {
             StyledDocument doc = chatPane.getStyledDocument();
             SimpleAttributeSet style = new SimpleAttributeSet();
             StyleConstants.setFontSize(style, 16);
-            StyleConstants.setForeground(style, Color.DARK_GRAY);
-            doc.insertString(doc.getLength(), message + "\n", null);
+            StyleConstants.setForeground(style, Color.BLACK);
+            doc.insertString(doc.getLength(), message + "\n", style);
         } catch (BadLocationException e) {
             e.printStackTrace();
         }
     }
 
-    // 이미지 채팅창에 출력
     private void appendImageToChat(ImageIcon image) {
         try {
             StyledDocument doc = chatPane.getStyledDocument();
             if (image != null) {
                 ImageIcon resizedImage = resizeImage(image, 200, 200);
-
-                chatPane.setCaretPosition(doc.getLength()); // 커서를 이미지 끝으로 이동
+                chatPane.setCaretPosition(doc.getLength());
                 chatPane.insertIcon(resizedImage);
                 doc.insertString(doc.getLength(), "\n", null);
             }
@@ -293,87 +368,74 @@ public class Player extends JFrame {
         }
     }
 
-    // 입력 창
+    // 입력창 패널
     private JPanel createInputPanel() {
-        JPanel panel = new JPanel(new BorderLayout(5, 5)); // BorderLayout 사용
+        JPanel panel = createTransparentPanel();
+        panel.setLayout(new BorderLayout(5, 5));
 
-//        panel.setOpaque(false);
-
-        // 첫 번째 줄: inputField가 전체를 차지하도록 설정
         inputField = new JTextField();
-        inputField.setFont(new Font("Comic Sans MS", Font.PLAIN, 16)); // 가독성을 위한 폰트 설정
-        panel.add(inputField, BorderLayout.CENTER); // inputField는 북쪽 영역에 배치
+        inputField.setFont(new Font("Comic Sans MS", Font.PLAIN, 16));
+        inputField.setOpaque(true);
+        inputField.setBackground(new Color(255, 255, 255, 230));
+        inputField.setBorder(BorderFactory.createLineBorder(Color.PINK, 2));
+        panel.add(inputField, BorderLayout.CENTER);
 
-        // 두 번째 줄: 버튼들
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 4, 5, 5)); // 버튼을 한 줄로 배치
+        JPanel buttonPanel = createTransparentPanel();
+        buttonPanel.setLayout(new GridLayout(1, 4, 5, 5));
 
-        // **버튼들**
-        sendButton = createStyledButton("💬 보내기");                  // 전송 버튼
+        sendButton = createStyledButton("💬 보내기");
         sendButton.addActionListener(e -> {
             sendMessage();
             playSound("assets/sound/button_click.wav");
         });
 
-        startGameButton = createStyledButton("🚀 게임 시작");           // 게임 시작 버튼
-        JButton sendImageButton = createStyledButton("🖼️ 이미지"); // 이미지 보내기 버튼
+        startGameButton = createStyledButton("🚀 게임 시작");
+        startGameButton.setEnabled(false);
+        startGameButton.addActionListener(e -> sendStartGameRequest());
+
+        JButton sendImageButton = createStyledButton("🖼️ 이미지");
         sendImageButton.addActionListener(e -> {
             playSound("assets/sound/button_click.wav");
+            sendImage();
         });
-        JButton sendFileButton = createStyledButton("📁 파일");   // 파일 보내기 버튼
 
-
-        sendButton.addActionListener(e -> sendMessage());
-        startGameButton.addActionListener(e -> sendStartGameRequest());
-        sendImageButton.addActionListener(e -> sendImage());
+        JButton sendFileButton = createStyledButton("📁 파일");
         sendFileButton.addActionListener(e -> sendFile());
 
-        startGameButton.setEnabled(false); // 기본적으로는 비활성화
-
-//        panel.add(inputField, BorderLayout.CENTER);
-//        panel.add(sendButton, BorderLayout.EAST);
-//        panel.add(startGameButton, BorderLayout.WEST);
-//        panel.add(sendImageButton, BorderLayout.NORTH);
-//        panel.add(sendFileButton, BorderLayout.SOUTH);
-
-        // 버튼들을 버튼 패널에 추가
         panel.add(sendButton, BorderLayout.EAST);
         buttonPanel.add(startGameButton);
         buttonPanel.add(sendImageButton);
         buttonPanel.add(sendFileButton);
 
-        // 버튼 패널을 SOUTH에 추가
         panel.add(buttonPanel, BorderLayout.SOUTH);
-
 
         return panel;
     }
+
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text);
-
-        // 기본 스타일 설정
         button.setFont(new Font("Comic Sans MS", Font.BOLD, 18));
-        button.setBackground(new Color(255, 228, 225)); // 파스텔톤 배경
+        button.setBackground(new Color(255, 228, 225));
         button.setForeground(Color.DARK_GRAY);
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createLineBorder(Color.PINK, 2));
-        button.setOpaque(true); // Opaque를 true로 설정
-        button.setContentAreaFilled(true); // 버튼 배경 영역 활성화
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
 
-        // 마우스 이벤트로 색 변경
         button.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                button.setBackground(Color.PINK); // 마우스 오버 색상
+                button.setBackground(Color.PINK);
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                button.setBackground(new Color(255, 228, 225)); // 기본 배경색으로 복원
+                button.setBackground(new Color(255, 228, 225));
             }
         });
-
         return button;
     }
+
     private void playSound(String filePath) {
         try {
             File soundFile = new File(filePath);
@@ -386,14 +448,10 @@ public class Player extends JFrame {
         }
     }
 
-
-
-
     private void enableStartGameButton() {
-        SwingUtilities.invokeLater(() -> startGameButton.setEnabled(true)); // 버튼 활성화
+        SwingUtilities.invokeLater(() -> startGameButton.setEnabled(true));
     }
 
-    // 채팅창 내용 초기화
     private void clearChatPaneAfterDelay(int delayMillis) {
         SwingUtilities.invokeLater(() -> {
             Timer timer = new Timer(delayMillis, e -> chatPane.setText(""));

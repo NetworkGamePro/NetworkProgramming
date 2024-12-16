@@ -170,6 +170,8 @@ public class ChatServer extends JFrame {
                             
                             String resultMessage = userName + "님이 단어 '" + assignedWord + "'를 맞추고 승리하였습니다! 현재 승리 횟수: " + currentWins;
 
+                            // 플레이어 정보 업데이트 브로드캐스트
+                            broadcastPlayerInfo();
                             // 모든 유저에게 결과 알림
                             broadcastMessage(new ChatMsg("SERVER", 16, resultMessage, null), null);
 
@@ -180,7 +182,9 @@ public class ChatServer extends JFrame {
                             
                             }
                             assignNewWordsToAllPlayers();
-                            
+                            // 새 단어 할당 후에도 다시 정보 브로드캐스트
+                            broadcastPlayerInfo();
+
                         } else {
                             broadcastMessage(chatMsg, this); // 일반 메시지
                         }
@@ -307,8 +311,34 @@ public class ChatServer extends JFrame {
                     }
                 }
                 appendToDisplay("방장이 게임을 시작했습니다."); // 서버 로그에 기록
+                broadcastPlayerInfo();
             } else {
                 appendToDisplay("게임 시작 권한이 없습니다.");
+            }
+        }
+
+        // 모든 플레이어 정보(닉네임, 단어, 승리횟수)를 클라이언트에게 전송하는 메서드 추가
+        private void broadcastPlayerInfo() {
+
+            System.out.println("클라이언트에게 전보한다 시발");
+            StringBuilder sb = new StringBuilder("USER_DATA");
+            // USER_DATA 뒤에 각 플레이어 정보를 "닉네임|할당단어|승수" 형태로 이어붙임
+            for (ClientHandler client : clients) {
+                if (!client.isSpectator) {
+                    int wins = gameManager.getWins(client.userName);
+                    String word = client.assignedWord != null ? client.assignedWord : "";
+                    sb.append(";").append(client.userName).append("|").append(word).append("|").append(wins);
+                }
+            }
+
+            ChatMsg playerInfoMsg = new ChatMsg("SERVER", 24, sb.toString(), null);
+            for (ClientHandler c : clients) {
+                try {
+                    c.out.writeObject(playerInfoMsg);
+                    c.out.flush();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -333,7 +363,8 @@ public class ChatServer extends JFrame {
                     }
                 }
                 
-                broadcastUserList(); 
+                broadcastUserList();
+                broadcastPlayerInfo();
                 appendToDisplay(userName + "님이 연결을 종료했습니다.");
             } catch (IOException e) {
                 appendToDisplay("소켓 종료 에러: " + e.getMessage());
