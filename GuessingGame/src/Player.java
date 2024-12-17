@@ -1,6 +1,4 @@
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
+import javax.sound.sampled.*;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import javax.swing.text.*;
@@ -10,6 +8,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.*;
 import java.net.Socket;
+import java.net.URL;
 import java.nio.file.Files;
 
 public class Player extends JFrame {
@@ -19,8 +18,6 @@ public class Player extends JFrame {
     private JButton startGameButton; // "게임 시작" 버튼
     private String userName;         // 유저 닉네임
     private JTextArea playerInfoArea; // 플레이어 정보 출력 영역
-
-
 
     private Socket socket;
     private ObjectOutputStream out;
@@ -39,7 +36,9 @@ public class Player extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // 배경 이미지 설정
-        ImageIcon backgroundImage = new ImageIcon("assets/image/game_background.jpg"); // 적절한 배경 이미지 사용
+        // JAR 내부 리소스로 배경 이미지 로드
+        URL bgURL = getClass().getResource("/assets/image/game_background.jpg");
+        ImageIcon backgroundImage = new ImageIcon(bgURL);
         JLabel backgroundLabel = new JLabel(backgroundImage);
         backgroundLabel.setLayout(new BorderLayout());
         setContentPane(backgroundLabel);
@@ -59,8 +58,6 @@ public class Player extends JFrame {
         JPanel centerPanel = createTransparentPanel();
         centerPanel.setLayout(new BorderLayout(10, 10));
         centerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-
 
         // 채팅 패널(반투명)
         JPanel chatPanel = createRoundedPanel();
@@ -220,7 +217,6 @@ public class Player extends JFrame {
 
                 // 파일 데이터를 읽어서 바이트 배열로 변환
                 byte[] fileData = Files.readAllBytes(selectedFile.toPath());
-
                 ChatMsg fileMsg = new ChatMsg(userName, 23, selectedFile.getName(), null);
                 fileMsg.setFileData(fileData);
                 out.writeObject(fileMsg);
@@ -251,7 +247,6 @@ public class Player extends JFrame {
     private void receiveMessages() {
         try {
             while (true) {
-
                 ChatMsg chatMsg = (ChatMsg) in.readObject();
 
                 if (chatMsg.getMode() == 16) { // 일반 채팅
@@ -259,10 +254,8 @@ public class Player extends JFrame {
 
                     if (chatMsg.getMessage().contains("새로운 단어가 할당되었습니다!")) {
                         JOptionPane.showMessageDialog(this, "새로운 제시어를 확인하세요!", "알림", JOptionPane.INFORMATION_MESSAGE);
-
                     } else if (chatMsg.getMessage().contains("현재 승리 횟수")) {
                         JOptionPane.showMessageDialog(this, chatMsg.getMessage(), "승리 알림", JOptionPane.INFORMATION_MESSAGE);
-
                     }
 
 
@@ -333,11 +326,9 @@ public class Player extends JFrame {
             int result = fileChooser.showSaveDialog(this);
             if (result == JFileChooser.APPROVE_OPTION) {
                 File saveFile = fileChooser.getSelectedFile();
-
                 try (FileOutputStream fos = new FileOutputStream(saveFile)) {
                     fos.write(chatMsg.getFileData());
                 }
-
                 JOptionPane.showMessageDialog(this, "파일이 성공적으로 저장되었습니다: " + saveFile.getAbsolutePath(), "알림", JOptionPane.INFORMATION_MESSAGE);
             }
         } catch (IOException e) {
@@ -345,8 +336,6 @@ public class Player extends JFrame {
             JOptionPane.showMessageDialog(this, "파일 저장 실패: " + e.getMessage(), "오류", JOptionPane.ERROR_MESSAGE);
         }
     }
-
-
 
     private ImageIcon resizeImage(ImageIcon imageIcon, int width, int height) {
         Image image = imageIcon.getImage();
@@ -398,7 +387,7 @@ public class Player extends JFrame {
         sendButton = createStyledButton("💬 보내기");
         sendButton.addActionListener(e -> {
             sendMessage();
-            playSound("assets/sound/button_click.wav");
+            playSound("/assets/sound/button_click.wav");
         });
 
         startGameButton = createStyledButton("🚀 게임 시작");
@@ -407,7 +396,7 @@ public class Player extends JFrame {
 
         JButton sendImageButton = createStyledButton("🖼️ 이미지");
         sendImageButton.addActionListener(e -> {
-            playSound("assets/sound/button_click.wav");
+            playSound("/assets/sound/button_click.wav");
             sendImage();
         });
 
@@ -448,10 +437,10 @@ public class Player extends JFrame {
         return button;
     }
 
-    private void playSound(String filePath) {
-        try {
-            File soundFile = new File(filePath);
-            AudioInputStream audioStream = AudioSystem.getAudioInputStream(soundFile);
+    private void playSound(String resourcePath) {
+        try (InputStream is = getClass().getResourceAsStream(resourcePath);
+             BufferedInputStream bis = new BufferedInputStream(is);
+             AudioInputStream audioStream = AudioSystem.getAudioInputStream(bis)) {
             Clip clip = AudioSystem.getClip();
             clip.open(audioStream);
             clip.start();
@@ -482,7 +471,8 @@ public class Player extends JFrame {
         overlay.setLocationRelativeTo(this);
 
         // GIF 이미지 로드
-        ImageIcon gifIcon = new ImageIcon("assets/image/start_animation.gif"); // 실제 GIF 경로 필요
+        URL gifURL = getClass().getResource("/assets/image/start_animation.gif");
+        ImageIcon gifIcon = new ImageIcon(gifURL);
         JLabel gifLabel = new JLabel(gifIcon);
         overlay.getContentPane().add(gifLabel);
 
@@ -490,9 +480,7 @@ public class Player extends JFrame {
         overlay.setVisible(true);
 
         // 5초 후 오버레이 제거
-        new Timer(2500, e -> {
-            overlay.dispose();
-        }).start();
+        new Timer(2500, e -> overlay.dispose()).start();
     }
 
     private void clearChatPaneAfterDelay(int delayMillis) {
