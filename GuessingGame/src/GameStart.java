@@ -115,6 +115,13 @@ public class GameStart extends JFrame {
             e.printStackTrace();
         }
     }
+    // 배경음악 중지 메서드
+    private void stopBackgroundMusic() {
+        if (backgroundMusic != null && backgroundMusic.isRunning()) {
+            backgroundMusic.stop();  // 음악 중지
+            backgroundMusic.close(); // 자원 해제
+        }
+    }
 
     // 버튼 클릭 사운드
     private void playButtonClickSound() {
@@ -150,6 +157,7 @@ public class GameStart extends JFrame {
             playButtonClickSound();
             dialog.dispose();
             new Player(true);
+            stopBackgroundMusic();
         });
 
         JButton playerButton = createRoleButton("플레이어", "/assets/icons/player_icon.png");
@@ -157,6 +165,7 @@ public class GameStart extends JFrame {
             playButtonClickSound();
             dialog.dispose();
             new Player(false);
+            stopBackgroundMusic();
         });
 
         buttonPanel.add(spectatorButton);
