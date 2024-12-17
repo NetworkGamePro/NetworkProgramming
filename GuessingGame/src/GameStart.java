@@ -177,7 +177,7 @@ public class GameStart extends JFrame {
         JButton button = new JButton(text);
         button.setFont(new Font("Cafe24Oneprettynight", Font.BOLD, 18));
         button.setBackground(new Color(255, 182, 193));
-        button.setForeground(Color.WHITE);
+        button.setForeground(Color.BLACK);
         button.setFocusPainted(false);
 
         // 아이콘 로드

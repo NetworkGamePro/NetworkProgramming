@@ -320,7 +320,7 @@ public class ChatServer extends JFrame {
         // 모든 플레이어 정보(닉네임, 단어, 승리횟수)를 클라이언트에게 전송하는 메서드 추가
         private void broadcastPlayerInfo() {
 
-            System.out.println("클라이언트에게 전보한다 시발");
+            System.out.println("클라이언트에게 전보한다");
             StringBuilder sb = new StringBuilder("USER_DATA");
             // USER_DATA 뒤에 각 플레이어 정보를 "닉네임|할당단어|승수" 형태로 이어붙임
             for (ClientHandler client : clients) {

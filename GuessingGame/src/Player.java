@@ -63,8 +63,8 @@ public class Player extends JFrame {
         JPanel chatPanel = createRoundedPanel();
         chatPanel.setLayout(new BorderLayout());
         chatPanel.setBorder(BorderFactory.createTitledBorder(
-                new LineBorder(Color.WHITE, 2), "채팅", 0, 0,
-                new Font("Comic Sans MS", Font.BOLD, 18), Color.WHITE));
+                new LineBorder(Color.pink, 2), "채팅", 0, 0,
+                new Font("Cafe24Oneprettynight", Font.PLAIN, 18), Color.BLACK));
         chatPane = new JTextPane();
         chatPane.setEditable(false);
         chatPane.setBackground(new Color(255,255,255,180));
@@ -77,8 +77,8 @@ public class Player extends JFrame {
         JPanel infoPanel = createRoundedPanel();
         infoPanel.setLayout(new BorderLayout());
         infoPanel.setBorder(BorderFactory.createTitledBorder(
-                new LineBorder(Color.WHITE, 2), "플레이어 상태", 0, 0,
-                new Font("Comic Sans MS", Font.BOLD, 18), Color.WHITE));
+                new LineBorder(Color.PINK, 2), "플레이어 상태", 0, 0,
+                new Font("Cafe24Oneprettynight", Font.PLAIN, 18), Color.BLACK));
         playerInfoArea = new JTextArea();
         playerInfoArea.setEditable(false);
         playerInfoArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
@@ -88,7 +88,7 @@ public class Player extends JFrame {
         infoScroll.setOpaque(false);
         infoScroll.getViewport().setOpaque(false);
         infoPanel.add(infoScroll, BorderLayout.CENTER);
-        infoPanel.setPreferredSize(new Dimension(250, 0));
+        infoPanel.setPreferredSize(new Dimension(320, 0));
         infoPanel.revalidate();
         infoPanel.repaint();
 
@@ -375,7 +375,7 @@ public class Player extends JFrame {
         panel.setLayout(new BorderLayout(5, 5));
 
         inputField = new JTextField();
-        inputField.setFont(new Font("Comic Sans MS", Font.PLAIN, 16));
+        inputField.setFont(new Font("Cafe24Oneprettynight", Font.PLAIN, 16));
         inputField.setOpaque(true);
         inputField.setBackground(new Color(255, 255, 255, 230));
         inputField.setBorder(BorderFactory.createLineBorder(Color.PINK, 2));
@@ -394,7 +394,7 @@ public class Player extends JFrame {
         startGameButton.setEnabled(false);
         startGameButton.addActionListener(e -> sendStartGameRequest());
 
-        JButton sendImageButton = createStyledButton("🖼️ 이미지");
+        JButton sendImageButton = createStyledButton("🎨 이미지");
         sendImageButton.addActionListener(e -> {
             playSound("/assets/sound/button_click.wav");
             sendImage();
@@ -415,7 +415,7 @@ public class Player extends JFrame {
 
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text);
-        button.setFont(new Font("Comic Sans MS", Font.BOLD, 18));
+        button.setFont(new Font("Cafe24Oneprettynight", Font.BOLD, 18));
         button.setBackground(new Color(255, 228, 225));
         button.setForeground(Color.DARK_GRAY);
         button.setFocusPainted(false);
