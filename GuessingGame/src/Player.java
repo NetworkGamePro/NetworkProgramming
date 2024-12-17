@@ -5,6 +5,7 @@ import javax.swing.*;
 import javax.swing.border.LineBorder;
 import javax.swing.text.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.*;
@@ -345,6 +346,8 @@ public class Player extends JFrame {
         }
     }
 
+
+
     private ImageIcon resizeImage(ImageIcon imageIcon, int width, int height) {
         Image image = imageIcon.getImage();
         Image resizedImage = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
@@ -457,8 +460,39 @@ public class Player extends JFrame {
         }
     }
 
+    // 5. 시작하기버튼 누르면 화면 전체를 GIF로 덮는 기능
     private void enableStartGameButton() {
-        SwingUtilities.invokeLater(() -> startGameButton.setEnabled(true));
+        SwingUtilities.invokeLater(() -> {
+            startGameButton.setEnabled(true);
+            // 시작하기 버튼 액션 리스너 변경
+            for (ActionListener al : startGameButton.getActionListeners()) {
+                startGameButton.removeActionListener(al);
+            }
+            startGameButton.addActionListener(e -> {
+                showOverlayGIF();
+                sendStartGameRequest();
+            });
+        });
+    }
+
+    // GIF 오버레이 메서드
+    private void showOverlayGIF() {
+        JWindow overlay = new JWindow();
+        overlay.setSize(getSize());
+        overlay.setLocationRelativeTo(this);
+
+        // GIF 이미지 로드
+        ImageIcon gifIcon = new ImageIcon("assets/image/start_animation.gif"); // 실제 GIF 경로 필요
+        JLabel gifLabel = new JLabel(gifIcon);
+        overlay.getContentPane().add(gifLabel);
+
+        // 최상위에 표시 (반투명 창 가능)
+        overlay.setVisible(true);
+
+        // 5초 후 오버레이 제거
+        new Timer(2500, e -> {
+            overlay.dispose();
+        }).start();
     }
 
     private void clearChatPaneAfterDelay(int delayMillis) {
