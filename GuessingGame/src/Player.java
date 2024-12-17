@@ -304,7 +304,7 @@ public class Player extends JFrame {
     private void showVictoryCountDialog(String message) {
         // JDialog 생성
         JDialog dialog = new JDialog(this, "승리 알림", true);
-        dialog.setSize(550, 300);
+        dialog.setSize(500, 300);
         dialog.setLayout(new BorderLayout());
         dialog.getContentPane().setBackground(new Color(255, 223, 186)); // 밝은 오렌지색 배경
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -322,7 +322,7 @@ public class Player extends JFrame {
 
         // 축하 아이콘
         JLabel iconLabel = new JLabel();
-        URL iconURL = getClass().getResource("/assets/image/spectator_icon.png");
+        URL iconURL = getClass().getResource("/assets/icons/spectator_icon.png");
         if (iconURL != null) {
             ImageIcon icon = new ImageIcon(iconURL);
             // 아이콘 크기 조정
@@ -345,7 +345,7 @@ public class Player extends JFrame {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 10));
         buttonPanel.setOpaque(false);
 
-        JButton okButton = createStyledButton("확인", "/assets/icons/player_icon.png");
+        JButton okButton = createStyledButton("확인");
         okButton.addActionListener(e -> dialog.dispose());
 
         buttonPanel.add(okButton);
@@ -447,23 +447,23 @@ public class Player extends JFrame {
         JPanel buttonPanel = createTransparentPanel();
         buttonPanel.setLayout(new GridLayout(1, 4, 5, 5));
 
-        sendButton = createStyledButton("💬 보내기", "/assets/icons/player_icon.png");
+        sendButton = createStyledButton("💬 보내기");
         sendButton.addActionListener(e -> {
             sendMessage();
             playSound("/assets/sound/button_click.wav");
         });
 
-        startGameButton = createStyledButton("🚀 게임 시작", "/assets/icons/player_icon.png");
+        startGameButton = createStyledButton("🚀 게임 시작");
         startGameButton.setEnabled(false);
         startGameButton.addActionListener(e -> sendStartGameRequest());
 
-        JButton sendImageButton = createStyledButton("🎨 이미지", "/assets/icons/player_icon.png");
+        JButton sendImageButton = createStyledButton("🎨 이미지");
         sendImageButton.addActionListener(e -> {
             playSound("/assets/sound/button_click.wav");
             sendImage();
         });
 
-        JButton sendFileButton = createStyledButton("📁 파일", "/assets/icons/player_icon.png");
+        JButton sendFileButton = createStyledButton("📁 파일");
         sendFileButton.addActionListener(e -> sendFile());
 
         panel.add(sendButton, BorderLayout.EAST);
@@ -476,7 +476,7 @@ public class Player extends JFrame {
         return panel;
     }
 
-    private JButton createStyledButton(String text, String s) {
+    private JButton createStyledButton(String text) {
         JButton button = new JButton(text);
         button.setFont(new Font("Cafe24Oneprettynight", Font.BOLD, 18));
         button.setBackground(new Color(255, 228, 225));
