@@ -237,7 +237,9 @@ public class Player extends JFrame {
                 ChatMsg startGameRequest = new ChatMsg(userName, 18, "", null); // 모드 18은 게임 시작 요청
                 out.writeObject(startGameRequest);
                 appendToChat("SERVER: 게임이 곧 시작됩니다!");
+
                 clearChatPaneAfterDelay(3000);
+
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -275,6 +277,7 @@ public class Player extends JFrame {
                 } else if (chatMsg.getMode() == 18) {
                     appendToChat(chatMsg.getMessage());
                     clearChatPaneAfterDelay(3000);
+                    showOverlayGIF();
 
                 } else if (chatMsg.getMode() == 19) {
                     appendToChat(chatMsg.getMessage());
@@ -458,7 +461,6 @@ public class Player extends JFrame {
                 startGameButton.removeActionListener(al);
             }
             startGameButton.addActionListener(e -> {
-                showOverlayGIF();
                 sendStartGameRequest();
             });
         });
@@ -475,12 +477,17 @@ public class Player extends JFrame {
         ImageIcon gifIcon = new ImageIcon(gifURL);
         JLabel gifLabel = new JLabel(gifIcon);
         overlay.getContentPane().add(gifLabel);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         // 최상위에 표시 (반투명 창 가능)
         overlay.setVisible(true);
 
         // 5초 후 오버레이 제거
-        new Timer(2500, e -> overlay.dispose()).start();
+        new Timer(4500, e -> overlay.dispose()).start();
     }
 
     private void clearChatPaneAfterDelay(int delayMillis) {
