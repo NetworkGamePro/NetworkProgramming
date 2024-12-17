@@ -168,7 +168,7 @@ public class ChatServer extends JFrame {
                             // 현재 승리 횟수 가져오기
                             int currentWins = gameManager.getWins(userName);
                             
-                            String resultMessage = userName + "님이 단어 '" + assignedWord + "'를 맞추고 승리하였습니다! 현재 승리 횟수: " + currentWins;
+                            String resultMessage = userName + "님이'" + assignedWord + "'를 맞추고 승리했어요! 승리 횟수: " + currentWins;
 
                             // 플레이어 정보 업데이트 브로드캐스트
                             broadcastPlayerInfo();
@@ -179,7 +179,7 @@ public class ChatServer extends JFrame {
                             if (currentWins == 3) { // 3승 조건
                                 broadcastMessage(new ChatMsg("SERVER", 16, userName + "님이 최종 우승하였습니다!", null), null);
                                 endGameForAll(); // 게임 종료 처리
-                            
+
                             }
                             assignNewWordsToAllPlayers();
                             // 새 단어 할당 후에도 다시 정보 브로드캐스트
@@ -260,7 +260,10 @@ public class ChatServer extends JFrame {
         
         // 게임 종료 메서드 추가
         private void endGameForAll() {
-            ChatMsg endGameMessage = new ChatMsg("SERVER", 20, "게임이 종료되었습니다!", null); // 게임 종료 알림
+            // 승리자의 이름을 포함한 메시지 생성
+            String endMessage = userName + "님이 최종 우승!";
+            ChatMsg endGameMessage = new ChatMsg("SERVER", 20, endMessage, null); // 게임 종료 알림
+
             for (ClientHandler client : clients) {
                 try {
                     client.out.writeObject(endGameMessage);
@@ -269,7 +272,7 @@ public class ChatServer extends JFrame {
                     e.printStackTrace();
                 }
             }
-            appendToDisplay("게임이 종료되었습니다.");
+            appendToDisplay("게임종료되었습니다. 우승자: " + userName);
         }
         
         private void broadcastMessage(ChatMsg chatMsg, ClientHandler sender) {

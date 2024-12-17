@@ -32,7 +32,7 @@ public class Player extends JFrame {
     public Player(boolean isSpectator) {
         this.isSpectator = isSpectator;
         setTitle("단어 맞추기 게임");
-        setSize(1000, 600);
+        setSize(900, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // 배경 이미지 설정
@@ -88,7 +88,7 @@ public class Player extends JFrame {
         infoScroll.setOpaque(false);
         infoScroll.getViewport().setOpaque(false);
         infoPanel.add(infoScroll, BorderLayout.CENTER);
-        infoPanel.setPreferredSize(new Dimension(320, 0));
+        infoPanel.setPreferredSize(new Dimension(310, 0));
         infoPanel.revalidate();
         infoPanel.repaint();
 
@@ -257,10 +257,8 @@ public class Player extends JFrame {
                     if (chatMsg.getMessage().contains("새로운 단어가 할당되었습니다!")) {
                         JOptionPane.showMessageDialog(this, "새로운 제시어를 확인하세요!", "알림", JOptionPane.INFORMATION_MESSAGE);
                     } else if (chatMsg.getMessage().contains("현재 승리 횟수")) {
-                        JOptionPane.showMessageDialog(this, chatMsg.getMessage(), "승리 알림", JOptionPane.INFORMATION_MESSAGE);
+                        showVictoryCountDialog(chatMsg.getMessage());
                     }
-
-
                 } else if (chatMsg.getMode() == 22) { // 이미지 메시지
                     appendToChat(chatMsg.getUserID() + "님이 이미지를 보냈습니다.");
                     appendImageToChat(chatMsg.getImage());
@@ -284,7 +282,14 @@ public class Player extends JFrame {
 
                 } else if (chatMsg.getMode() == 20) {
                     appendToChat(chatMsg.getMessage());
-                    JOptionPane.showMessageDialog(this, "게임이 종료되었습니다!", "알림", JOptionPane.INFORMATION_MESSAGE);
+// 승리 유저 이름 추출 및 축하 메시지 표시
+                    String msg = chatMsg.getMessage();
+                    String winnerName = "우승자"; // 기본값
+                    if (msg.contains("님이 최종 우승!")) {
+                        winnerName = msg.split("님")[0];
+                    }
+                    showWinnerDialog(winnerName);
+
                     break;
 
                 } else if (chatMsg.getMode() == 24) {
@@ -295,6 +300,61 @@ public class Player extends JFrame {
             e.printStackTrace();
         }
     }
+
+    private void showVictoryCountDialog(String message) {
+        // JDialog 생성
+        JDialog dialog = new JDialog(this, "승리 알림", true);
+        dialog.setSize(550, 300);
+        dialog.setLayout(new BorderLayout());
+        dialog.getContentPane().setBackground(new Color(255, 223, 186)); // 밝은 오렌지색 배경
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
+        // 상단 제목 라벨
+        JLabel titleLabel = new JLabel("🏆 축하해요! 🏆", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 24));
+        titleLabel.setForeground(new Color(255, 69, 0)); // 진한 오렌지색
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
+        dialog.add(titleLabel, BorderLayout.NORTH);
+
+        // 중앙 패널: 메시지와 아이콘
+        JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
+        centerPanel.setOpaque(false);
+
+        // 축하 아이콘
+        JLabel iconLabel = new JLabel();
+        URL iconURL = getClass().getResource("/assets/image/spectator_icon.png");
+        if (iconURL != null) {
+            ImageIcon icon = new ImageIcon(iconURL);
+            // 아이콘 크기 조정
+            Image img = icon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+            iconLabel.setIcon(new ImageIcon(img));
+        }
+
+        // 메시지 라벨
+        JLabel messageLabel = new JLabel("<html><center>" + message + "</center></html>");
+        messageLabel.setFont(new Font("Comic Sans MS", Font.PLAIN, 18));
+        messageLabel.setForeground(new Color(255, 140, 0)); // 주황색
+        messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        centerPanel.add(iconLabel);
+        centerPanel.add(messageLabel);
+
+        dialog.add(centerPanel, BorderLayout.CENTER);
+
+        // 하단 "확인" 버튼 패널
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 10));
+        buttonPanel.setOpaque(false);
+
+        JButton okButton = createStyledButton("확인", "/assets/icons/player_icon.png");
+        okButton.addActionListener(e -> dialog.dispose());
+
+        buttonPanel.add(okButton);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
 
     // 현황패널 업데이트
     private void updatePlayerInfo(String data) {
@@ -387,23 +447,23 @@ public class Player extends JFrame {
         JPanel buttonPanel = createTransparentPanel();
         buttonPanel.setLayout(new GridLayout(1, 4, 5, 5));
 
-        sendButton = createStyledButton("💬 보내기");
+        sendButton = createStyledButton("💬 보내기", "/assets/icons/player_icon.png");
         sendButton.addActionListener(e -> {
             sendMessage();
             playSound("/assets/sound/button_click.wav");
         });
 
-        startGameButton = createStyledButton("🚀 게임 시작");
+        startGameButton = createStyledButton("🚀 게임 시작", "/assets/icons/player_icon.png");
         startGameButton.setEnabled(false);
         startGameButton.addActionListener(e -> sendStartGameRequest());
 
-        JButton sendImageButton = createStyledButton("🎨 이미지");
+        JButton sendImageButton = createStyledButton("🎨 이미지", "/assets/icons/player_icon.png");
         sendImageButton.addActionListener(e -> {
             playSound("/assets/sound/button_click.wav");
             sendImage();
         });
 
-        JButton sendFileButton = createStyledButton("📁 파일");
+        JButton sendFileButton = createStyledButton("📁 파일", "/assets/icons/player_icon.png");
         sendFileButton.addActionListener(e -> sendFile());
 
         panel.add(sendButton, BorderLayout.EAST);
@@ -416,7 +476,7 @@ public class Player extends JFrame {
         return panel;
     }
 
-    private JButton createStyledButton(String text) {
+    private JButton createStyledButton(String text, String s) {
         JButton button = new JButton(text);
         button.setFont(new Font("Cafe24Oneprettynight", Font.BOLD, 18));
         button.setBackground(new Color(255, 228, 225));
@@ -489,6 +549,49 @@ public class Player extends JFrame {
         // 5초 후 오버레이 제거
         new Timer(4500, e -> overlay.dispose()).start();
     }
+
+    private void showWinnerDialog(String winnerName) {
+        // JDialog 생성
+        JDialog dialog = new JDialog(this, "축하합니다!", true);
+        dialog.setSize(500, 400);
+        dialog.setLocationRelativeTo(this);
+        dialog.setUndecorated(true); // 타이틀 바 제거
+
+        // JLayeredPane을 사용하여 배경과 컴포넌트를 겹치게 함
+        JLayeredPane layeredPane = new JLayeredPane();
+        layeredPane.setPreferredSize(new Dimension(500, 400));
+
+        // 배경 GIF 로드
+        URL gifURL = getClass().getResource("/assets/image/space1.gif");
+
+        ImageIcon backgroundGif = new ImageIcon(gifURL);
+        JLabel backgroundLabel = new JLabel(backgroundGif);
+        backgroundLabel.setBounds(0, 0, 500, 400);
+        layeredPane.add(backgroundLabel, new Integer(0));
+
+        // 축하 메시지 라벨
+        JLabel messageLabel = new JLabel("와! " + winnerName + " 님이" +System.lineSeparator()+ "이겼어요!");
+        messageLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 24));
+        messageLabel.setForeground(Color.WHITE);
+        messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        messageLabel.setBounds(50, 150, 400, 50);
+        layeredPane.add(messageLabel, new Integer(1));
+
+        // "게임 나가기" 버튼
+        JButton exitButton = new JButton("게임 나가기");
+        exitButton.setFont(new Font("Comic Sans MS", Font.PLAIN, 14));
+        exitButton.setBounds(200, 250, 100, 40);
+        exitButton.addActionListener(e -> {
+            dialog.dispose();
+            System.exit(0); // 애플리케이션 종료
+        });
+        layeredPane.add(exitButton, new Integer(1));
+
+        // 레이어드 페인 추가
+        dialog.setContentPane(layeredPane);
+        dialog.setVisible(true);
+    }
+
 
     private void clearChatPaneAfterDelay(int delayMillis) {
         SwingUtilities.invokeLater(() -> {
