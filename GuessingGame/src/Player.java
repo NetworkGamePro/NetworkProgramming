@@ -256,8 +256,8 @@ public class Player extends JFrame {
 
                     if (chatMsg.getMessage().contains("새로운 단어가 할당되었습니다!")) {
                         JOptionPane.showMessageDialog(this, "새로운 제시어를 확인하세요!", "알림", JOptionPane.INFORMATION_MESSAGE);
-                    } else if (chatMsg.getMessage().contains("현재 승리 횟수")) {
-                        showVictoryCountDialog(chatMsg.getMessage());
+                    } else if (chatMsg.getMessage().contains("승리 횟수")) {
+                        SwingUtilities.invokeLater(() -> showVictoryCountDialog(chatMsg.getMessage()));
                     }
                 } else if (chatMsg.getMode() == 22) { // 이미지 메시지
                     appendToChat(chatMsg.getUserID() + "님이 이미지를 보냈습니다.");
@@ -311,7 +311,7 @@ public class Player extends JFrame {
 
         // 상단 제목 라벨
         JLabel titleLabel = new JLabel("🏆 축하해요! 🏆", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 24));
+        titleLabel.setFont(new Font("Cafe24Oneprettynight", Font.BOLD, 24));
         titleLabel.setForeground(new Color(255, 69, 0)); // 진한 오렌지색
         titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
         dialog.add(titleLabel, BorderLayout.NORTH);
@@ -332,7 +332,7 @@ public class Player extends JFrame {
 
         // 메시지 라벨
         JLabel messageLabel = new JLabel("<html><center>" + message + "</center></html>");
-        messageLabel.setFont(new Font("Comic Sans MS", Font.PLAIN, 18));
+        messageLabel.setFont(new Font("Cafe24Oneprettynight", Font.PLAIN, 18));
         messageLabel.setForeground(new Color(255, 140, 0)); // 주황색
         messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
@@ -455,7 +455,8 @@ public class Player extends JFrame {
 
         startGameButton = createStyledButton("🚀 게임 시작");
         startGameButton.setEnabled(false);
-        startGameButton.addActionListener(e -> sendStartGameRequest());
+        startGameButton.addActionListener(e -> {playSound("/assets/sound/button_click.wav");
+        sendStartGameRequest();});
 
         JButton sendImageButton = createStyledButton("🎨 이미지");
         sendImageButton.addActionListener(e -> {
